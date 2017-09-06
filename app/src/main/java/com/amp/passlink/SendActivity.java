@@ -3,8 +3,12 @@ package com.amp.passlink;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -12,6 +16,7 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.amp.passlink.Networking.Endpoints;
@@ -35,12 +40,24 @@ public class SendActivity extends AppCompatActivity {
     private ImageView preview_image;
     private AVLoadingIndicatorView progress_bar;
     private Button send_button;
+    private LinearLayout loading_layout;
+    private String textBody = "";
+    private TextView title;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send);
+
+        try {
+            getSupportActionBar().hide();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        title = (TextView) findViewById(R.id.title_tv);
         link_text = (TextView) findViewById(R.id.share_link);
         preview_title = (TextView) findViewById(R.id.preview_title);
         preview_link = (TextView) findViewById(R.id.preview_link);
@@ -49,12 +66,32 @@ public class SendActivity extends AppCompatActivity {
         preview_image = (ImageView) findViewById(R.id.preview_image);
         progress_bar = (AVLoadingIndicatorView) findViewById(R.id.progress_bar);
         send_button = (Button) findViewById(R.id.send_button);
+        loading_layout = (LinearLayout) findViewById(R.id.loading_layout);
         send_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(SendActivity.this, BarCodeActivity.class);
+                ConnectivityManager cm =
+                        (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
-                startActivityForResult(intent, RC_BARCODE_CAPTURE);
+                final NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+                boolean isConnected = activeNetwork != null &&
+                        activeNetwork.isConnectedOrConnecting();
+
+                if (!isConnected) {
+                    Snackbar.make(findViewById(R.id.coordinatorLayout),
+                            "No Internet connection.", Snackbar.LENGTH_SHORT).show();
+                    return;
+                }
+
+
+                if (textBody.isEmpty()) {
+                    Snackbar.make(findViewById(R.id.coordinatorLayout),
+                            "No data to send.", Snackbar.LENGTH_SHORT).show();
+                } else {
+                    Intent intent = new Intent(SendActivity.this, BarCodeActivity.class);
+                    startActivityForResult(intent, RC_BARCODE_CAPTURE);
+                }
             }
         });
 
@@ -65,6 +102,7 @@ public class SendActivity extends AppCompatActivity {
                 // Any work that needs to be done before generating the preview. Usually inflate
                 // your custom preview layout here.
                 progress_bar.setVisibility(View.VISIBLE);
+                loading_layout.setVisibility(View.VISIBLE);
                 progress_bar.show();
             }
 
@@ -75,6 +113,7 @@ public class SendActivity extends AppCompatActivity {
                 cardView.setVisibility(View.VISIBLE);
                 progress_bar.hide();
                 progress_bar.setVisibility(View.GONE);
+                loading_layout.setVisibility(View.GONE);
                 preview_title.setText(sourceContent.getTitle());
                 preview_description.setText(sourceContent.getDescription());
                 preview_link.setText(sourceContent.getCannonicalUrl());
@@ -88,20 +127,56 @@ public class SendActivity extends AppCompatActivity {
             }
         };
 
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if ("text/plain".equals(type)) {
+                handleSendText(intent); // Handle text being sent
+            }
+        } else {
 
-        ClipData clip = clipboard.getPrimaryClip();
-        if (clip != null) {
-            ClipData.Item item = clip.getItemAt(0);
-            String url = item.coerceToText(this).toString();
-            link_text.setText(url);
-            send_button.setEnabled(true);
-            if (Patterns.WEB_URL.matcher(url).matches()) {
-                TextCrawler textCrawler = new TextCrawler();
-                textCrawler.makePreview(linkPreviewCallback, url);
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+
+            ClipData clip = clipboard.getPrimaryClip();
+            if (clip != null) {
+                ClipData.Item item = clip.getItemAt(0);
+                String url = item.coerceToText(this).toString();
+                if (url.isEmpty()) {
+                    Snackbar mySnackbar = Snackbar.make(findViewById(R.id.coordinatorLayout),
+                            "No Copied text found.", Snackbar.LENGTH_SHORT);
+                    mySnackbar.show();
+                }
+                textBody = url;
+                link_text.setText(textBody);
+
+                if (Patterns.WEB_URL.matcher(url).matches()) {
+                    TextCrawler textCrawler = new TextCrawler();
+                    textCrawler.makePreview(linkPreviewCallback, url);
+                    title.setText("Copied Link");
+                } else {
+                    title.setText("Copied Text");
+                }
             }
         }
 
+
+    }
+
+    private void handleSendText(Intent intent) {
+        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (sharedText != null) {
+            // Update UI to reflect text being shared
+            if (Patterns.WEB_URL.matcher(sharedText).matches()) {
+                title.setText("Shared Link");
+            } else {
+                title.setText("Shared Text");
+            }
+            textBody = sharedText;
+            link_text.setText(sharedText);
+            Intent Bar_intent = new Intent(SendActivity.this, BarCodeActivity.class);
+            startActivityForResult(Bar_intent, RC_BARCODE_CAPTURE);
+        }
     }
 
     @Override
@@ -109,12 +184,10 @@ public class SendActivity extends AppCompatActivity {
         if (requestCode == RC_BARCODE_CAPTURE) {
             if (resultCode == Activity.RESULT_OK) {
                 if (data != null) {
-                    String result=data.getStringExtra("result");
+                    String result = data.getStringExtra("result");
                     sendDataToServer(result);
-                    Log.d("Amal","data to send activit  "+result);
-
+                    Log.d("Amal", "data to send activit  " + result);
                 } else {
-
                     Log.d("Amal", "No barcode captured, intent data is null");
                 }
             } else {
@@ -126,9 +199,10 @@ public class SendActivity extends AppCompatActivity {
     }
 
     private void sendDataToServer(String key) {
+
         JsonObject json = new JsonObject();
         json.addProperty("code", key);
-        json.addProperty("value", link_text.getText().toString());
+        json.addProperty("value", textBody);
 
         Ion.with(this)
                 .load(Endpoints.updateUrl)
@@ -138,7 +212,7 @@ public class SendActivity extends AppCompatActivity {
                     @Override
                     public void onCompleted(Exception e, JsonObject result) {
                         // do stuff with the result or error
-                        Log.d("","");
+                        Log.d("", "");
                     }
                 });
     }
