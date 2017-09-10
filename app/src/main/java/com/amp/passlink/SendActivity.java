@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import com.bumptech.glide.Glide;
 import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
+import com.koushikdutta.ion.Response;
 import com.leocardz.link.preview.library.LinkPreviewCallback;
 import com.leocardz.link.preview.library.SourceContent;
 import com.leocardz.link.preview.library.TextCrawler;
@@ -43,6 +45,9 @@ public class SendActivity extends AppCompatActivity {
     private LinearLayout loading_layout;
     private String textBody = "";
     private TextView title;
+    private boolean share_intent_handle_flag = false;
+
+    private LinkPreviewCallback linkPreviewCallback;
 
 
     @Override
@@ -72,9 +77,7 @@ public class SendActivity extends AppCompatActivity {
             public void onClick(View view) {
                 ConnectivityManager cm =
                         (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-
                 final NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-
                 boolean isConnected = activeNetwork != null &&
                         activeNetwork.isConnectedOrConnecting();
 
@@ -90,13 +93,14 @@ public class SendActivity extends AppCompatActivity {
                             "No data to send.", Snackbar.LENGTH_SHORT).show();
                 } else {
                     Intent intent = new Intent(SendActivity.this, BarCodeActivity.class);
+                    intent.putExtra("action", "send");
                     startActivityForResult(intent, RC_BARCODE_CAPTURE);
                 }
             }
         });
 
 
-        LinkPreviewCallback linkPreviewCallback = new LinkPreviewCallback() {
+        linkPreviewCallback = new LinkPreviewCallback() {
             @Override
             public void onPre() {
                 // Any work that needs to be done before generating the preview. Usually inflate
@@ -137,7 +141,6 @@ public class SendActivity extends AppCompatActivity {
         } else {
 
             ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-
             ClipData clip = clipboard.getPrimaryClip();
             if (clip != null) {
                 ClipData.Item item = clip.getItemAt(0);
@@ -147,6 +150,7 @@ public class SendActivity extends AppCompatActivity {
                             "No Copied text found.", Snackbar.LENGTH_SHORT);
                     mySnackbar.show();
                 }
+
                 textBody = url;
                 link_text.setText(textBody);
 
@@ -158,9 +162,56 @@ public class SendActivity extends AppCompatActivity {
                     title.setText("Copied Text");
                 }
             }
+
         }
 
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        if (share_intent_handle_flag) {
+            share_intent_handle_flag = false;
+            return;
+        }
+
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        ClipData clip = clipboard.getPrimaryClip();
+        if (clip != null) {
+            ClipData.Item item = clip.getItemAt(0);
+            String url = item.coerceToText(this).toString();
+            if (textBody.equals(url)) {
+                return;
+            }
+            if (url.isEmpty()) {
+                Snackbar mySnackbar = Snackbar.make(findViewById(R.id.coordinatorLayout),
+                        "No Copied text found.", Snackbar.LENGTH_SHORT);
+                mySnackbar.show();
+            }
+
+            textBody = url;
+            link_text.setText(textBody);
+
+            if (Patterns.WEB_URL.matcher(url).matches()) {
+                TextCrawler textCrawler = new TextCrawler();
+                textCrawler.makePreview(linkPreviewCallback, url);
+                title.setText("Copied Link");
+            } else {
+                title.setText("Copied Text");
+            }
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     private void handleSendText(Intent intent) {
@@ -175,18 +226,21 @@ public class SendActivity extends AppCompatActivity {
             textBody = sharedText;
             link_text.setText(sharedText);
             Intent Bar_intent = new Intent(SendActivity.this, BarCodeActivity.class);
+            Bar_intent.putExtra("action", "send");
             startActivityForResult(Bar_intent, RC_BARCODE_CAPTURE);
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        share_intent_handle_flag = true;
+
         if (requestCode == RC_BARCODE_CAPTURE) {
             if (resultCode == Activity.RESULT_OK) {
                 if (data != null) {
                     String result = data.getStringExtra("result");
                     sendDataToServer(result);
-                    Log.d("Amal", "data to send activit  " + result);
+                    Log.d("Amal", "data to send activity  " + result);
                 } else {
                     Log.d("Amal", "No barcode captured, intent data is null");
                 }
@@ -207,15 +261,22 @@ public class SendActivity extends AppCompatActivity {
         Ion.with(this)
                 .load(Endpoints.updateUrl)
                 .setJsonObjectBody(json)
-                .asJsonObject()
-                .setCallback(new FutureCallback<JsonObject>() {
+                .asString()
+                .withResponse()
+                .setCallback(new FutureCallback<Response<String>>() {
                     @Override
-                    public void onCompleted(Exception e, JsonObject result) {
+                    public void onCompleted(Exception e, Response<String> result) {
                         // do stuff with the result or error
                         Log.d("", "");
+                        if (result.getHeaders().code()==200){
+                            Snackbar snackbar = Snackbar.make(findViewById(R.id.coordinatorLayout),
+                                    "Sent successfully", Snackbar.LENGTH_SHORT);
+                            View sbView = snackbar.getView();
+                            sbView.setBackgroundColor(getResources().getColor(R.color.dark_green_500));
+                            snackbar.show();
+                        }
                     }
                 });
     }
-
 
 }

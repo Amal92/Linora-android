@@ -20,7 +20,7 @@
         android:layout_marginTop="43dp"
         android:text="@string/app_name"
         android:textColor="@color/white"
-        android:textSize="25sp"
+        android:textSize="30sp"
         android:textStyle="bold" />
 
     <TextView
@@ -50,6 +50,7 @@
             android:textColor="@color/white" />
 
         <Button
+            android:id="@+id/receive_button"
             android:layout_width="180dp"
             android:layout_height="45dp"
             android:layout_marginBottom="16dp"

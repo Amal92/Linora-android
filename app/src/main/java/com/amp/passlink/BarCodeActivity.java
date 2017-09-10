@@ -18,6 +18,7 @@ public class BarCodeActivity extends AppCompatActivity implements ZXingScannerVi
     private static final int RC_HANDLE_CAMERA_PERM = 2;
 
     private ZXingScannerView mScannerView;
+    private String action = "";
 
     public static Boolean isValidInteger(String value) {
         try {
@@ -37,6 +38,7 @@ public class BarCodeActivity extends AppCompatActivity implements ZXingScannerVi
         mScannerView = new ZXingScannerView(this);   // Programmatically initialize the scanner view
         mScannerView.setAutoFocus(true);
         setContentView(mScannerView);
+        action = getIntent().getExtras().getString("action");
         int rc = ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA);
         if (rc == PackageManager.PERMISSION_GRANTED) {
 
@@ -85,7 +87,14 @@ public class BarCodeActivity extends AppCompatActivity implements ZXingScannerVi
         // Do something with the result here
 
         String data = rawResult.getText();
-        if (isValidInteger(data) && data.length() == 6) {
+        if (action.equals("send")) {
+            if (isValidInteger(data) && data.length() == 6) {
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra("result", data);
+                setResult(Activity.RESULT_OK, returnIntent);
+                finish();
+            }
+        }else if (action.equals("receive")){
             Intent returnIntent = new Intent();
             returnIntent.putExtra("result", data);
             setResult(Activity.RESULT_OK, returnIntent);

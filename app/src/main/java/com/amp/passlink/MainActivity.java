@@ -1,8 +1,8 @@
 package com.amp.passlink;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
@@ -10,7 +10,7 @@ import com.splunk.mint.Mint;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button send_button;
+    private Button send_button, receive_button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,10 +24,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         send_button = (Button) findViewById(R.id.send_button);
+        receive_button = (Button) findViewById(R.id.receive_button);
         send_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this,SendActivity.class));
+                startActivity(new Intent(MainActivity.this, SendActivity.class));
+            }
+        });
+        receive_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, RecieveActivity.class));
             }
         });
     }
