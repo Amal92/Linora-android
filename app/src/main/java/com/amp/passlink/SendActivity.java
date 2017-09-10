@@ -5,7 +5,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -32,6 +31,8 @@ import com.leocardz.link.preview.library.TextCrawler;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SendActivity extends AppCompatActivity {
 
@@ -224,6 +225,18 @@ public class SendActivity extends AppCompatActivity {
                 title.setText("Shared Text");
             }
             textBody = sharedText;
+            if (!sharedText.contains(" ")) {
+               /* final String URL_REGEX = "^((https?|ftp)://|(www|ftp)\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+([/?].*)?$";
+                Pattern p = Pattern.compile(URL_REGEX);
+                Matcher m = p.matcher(sharedText);*/
+
+                if (sharedText.contains(".")) {
+                    //possible url
+                    if (!textBody.startsWith("www.") && !textBody.startsWith("http://") && !textBody.startsWith("https://")) {
+                        textBody = "http://" + textBody;
+                    }
+                }
+            }
             link_text.setText(sharedText);
             Intent Bar_intent = new Intent(SendActivity.this, BarCodeActivity.class);
             Bar_intent.putExtra("action", "send");
@@ -268,7 +281,7 @@ public class SendActivity extends AppCompatActivity {
                     public void onCompleted(Exception e, Response<String> result) {
                         // do stuff with the result or error
                         Log.d("", "");
-                        if (result.getHeaders().code()==200){
+                        if (result.getHeaders().code() == 200) {
                             Snackbar snackbar = Snackbar.make(findViewById(R.id.coordinatorLayout),
                                     "Sent successfully", Snackbar.LENGTH_SHORT);
                             View sbView = snackbar.getView();
