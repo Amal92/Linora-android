@@ -6,4 +6,9 @@
     <color name="blue_bg">#2196F3</color>
     <color name="white">#ffffff</color>
     <color name="dark_green_500">#4CAF50</color>
+    <color name="text_black">#df000000</color>
+    <color name="black">#000</color>
+    <color name="green_accent_400">#76ff03</color>
+    <color name="blue">#1976D2</color>
+    <color name="grey_500">#9E9E9E</color>
 </resources>
