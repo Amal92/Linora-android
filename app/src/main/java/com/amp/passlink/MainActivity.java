@@ -117,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
             public void onPos(SourceContent sourceContent, boolean b) {
                 // Populate your preview layout with the results of sourceContent.
 
-
                 // progress_bar.hide();
                 //  progress_bar.setVisibility(View.GONE);
                 //  loading_layout.setVisibility(View.GONE);
@@ -151,6 +150,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        connectNewButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                set_up_card.setVisibility(View.VISIBLE);
+                preview_ll.setVisibility(View.GONE);
+                // send_button.setVisibility(View.VISIBLE);
+                connectNewButton.setVisibility(View.GONE);
+            }
+        });
+
         send_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -169,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
         String uniqueID = (String) SharedPreferencesUtils.getParam(this, SharedPreferencesUtils.SHARED_PREF_UNIQUEID, "");
         JsonObject json = new JsonObject();
         json.addProperty("uniqueID", uniqueID);
-        json.addProperty("type", "MOBILE");
+        json.addProperty("type", "WEB");
         json.addProperty("url", copiedText);
 
         Ion.with(this)
@@ -184,9 +193,13 @@ public class MainActivity extends AppCompatActivity {
 
                         if (result.getHeaders().code() == 200) {
                             Log.d("amal", "send response: 200");
-
+                            SharedPreferencesUtils.setParam(MainActivity.this, SharedPreferencesUtils.SHARED_PREF_FIRSTSEND, true);
                         } else {
-                            Toast.makeText(MainActivity.this, "Sync Failed. Try again.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.this, "Couldn't send the link. Try syncing again.", Toast.LENGTH_LONG).show();
+                            set_up_card.setVisibility(View.VISIBLE);
+                            preview_ll.setVisibility(View.GONE);
+                            // send_button.setVisibility(View.VISIBLE);
+                            connectNewButton.setVisibility(View.GONE);
                         }
                     }
                 });
@@ -244,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
                         if (result.getHeaders().code() == 200) {
                             Log.d("amal", "response: 200");
                             SharedPreferencesUtils.setParam(MainActivity.this, SharedPreferencesUtils.SHARED_PREF_UNIQUEID, uniqueId);
+                            SharedPreferencesUtils.setParam(MainActivity.this, SharedPreferencesUtils.SHARED_PREF_FIRSTSEND, false);
                             set_up_card.setVisibility(View.GONE);
                             sync_check_ll.setVisibility(View.VISIBLE);
                             sync_check_ll.postDelayed(new Runnable() {

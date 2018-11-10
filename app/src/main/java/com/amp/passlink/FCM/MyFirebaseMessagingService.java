@@ -4,15 +4,15 @@ package com.amp.passlink.FCM;
  * Created by jayakumar on 16/02/17.
  */
 
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
+import android.app.TaskStackBuilder;
 import android.content.Intent;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.amp.passlink.MainActivity;
@@ -31,10 +31,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         Log.d(TAG, "From: " + remoteMessage.getFrom());
         if (remoteMessage.getData() != null) {
-            Log.d(TAG, "Notification Message Body: " + remoteMessage.getData());
+           /* Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
+            Log.d(TAG, "Notification Message title: " + remoteMessage.getNotification().getTitle());
+            Log.d(TAG, "Notification Message click to action: " + remoteMessage.getNotification().getClickAction());*/
+
+           Log.d(TAG, remoteMessage.getData().toString());
             //Calling method to generate notification
-            reqID = (int) System.currentTimeMillis();
-            sendNotification(remoteMessage.getData().get("message"));
+            // reqID = (int) System.currentTimeMillis();
+            sendNotification(remoteMessage.getData().get("title"), remoteMessage.getData().get("body"), remoteMessage.getData().get("click_action"));
         } else {
             Log.d(TAG, "FCM Notification failed");
         }
@@ -42,16 +46,20 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     //This method is only generating push notification
     //It is same as we did in earlier posts
-    private void sendNotification(String messageBody) {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    private void sendNotification(String title, String body, String clickToAction) {
+       /* Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        //   intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        //  Intent notificationIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(clickToAction));
+
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
-                PendingIntent.FLAG_ONE_SHOT);
+                PendingIntent.FLAG_UPDATE_CURRENT);
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(messageBody)
+                .setContentTitle(title)
+                .setContentText(body)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent);
@@ -59,13 +67,65 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(reqID, notificationBuilder.build());
+        notificationManager.notify(reqID, notificationBuilder.build());*/
+
+        Intent resultIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(clickToAction));//new Intent(this, MainActivity.class);
+        resultIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, resultIntent, 0);
+
+        String CHANNEL_ID = "my_amp_channel_082473";// The id of the channel.
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this, CHANNEL_ID)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle(title)
+                        .setContentText(body)
+                        .setPriority(Notification.PRIORITY_MAX)
+                        .setDefaults(Notification.DEFAULT_SOUND)
+                        .setSmallIcon(getNotificationIcon())
+                        .setContentIntent(pendingIntent)
+                        .setAutoCancel(true);
+
+
+
+        /*resultIntent.putExtra("title", title_editor.getText().toString());
+        resultIntent.putExtra("content", content_editor.getText().toString());*/
+
+        /*TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addNextIntentWithParentStack(resultIntent);
+// Get the PendingIntent containing the entire back stack
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT
+                        | PendingIntent.FLAG_ONE_SHOT);*/
+
+
+
+        int mNotificationId = (int) System.currentTimeMillis();
+        // Gets an instance of the NotificationManager service
+        NotificationManager mNotifyMgr =
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            CharSequence name = getResources().getString(R.string.app_name);// The user-visible name of the channel.
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+            if (mNotifyMgr != null) {
+                mNotifyMgr.createNotificationChannel(mChannel);
+            }
+        }
+
+        // Builds the notification and issues it.
+        if (mNotifyMgr != null) {
+            mNotifyMgr.notify(mNotificationId, mBuilder.build());
+        }
+
+
     }
 
-    private int getNotificationIcon(NotificationCompat.Builder notificationBuilder) {
+    private int getNotificationIcon() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            notificationBuilder.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-            return R.mipmap.ic_launcher;
+
+            return R.mipmap.ic_stat_app_icon_white;
         } else {
             return R.mipmap.ic_launcher;
         }
