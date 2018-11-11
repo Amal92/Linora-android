@@ -190,7 +190,7 @@
             android:drawableStart="@drawable/send"
             android:fontFamily="@font/roboto"
             android:padding="16dp"
-            android:text="Send link to browser"
+            android:text="@string/send_link_to_browser"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="14sp"

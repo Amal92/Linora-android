@@ -124,7 +124,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private int getNotificationIcon() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
             return R.mipmap.ic_stat_app_icon_white;
         } else {
             return R.mipmap.ic_launcher;

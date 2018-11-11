@@ -286,11 +286,13 @@ public class MainActivity extends AppCompatActivity {
             String text = item.getText().toString();
             if (Patterns.WEB_URL.matcher(text).matches()) {
                 copiedText = text;
+                send_button.setText(R.string.send_link_to_browser);
                 TextCrawler textCrawler = new TextCrawler();
                 textCrawler.makePreview(linkPreviewCallback, text);
             } else {
-                if (!(boolean) SharedPreferencesUtils.getParam(this, SharedPreferencesUtils.SHARED_PREF_FIRSTSEND, false)) {
-                    send_button.setText("Send a test link");
+                boolean first_send = (boolean) SharedPreferencesUtils.getParam(this, SharedPreferencesUtils.SHARED_PREF_FIRSTSEND, false);
+                if (!first_send) {
+                    send_button.setText(R.string.send_test_link);
                     copiedText = "first_send";
                 } else
                     Toast.makeText(this, "Couldn't detect any copied link.", Toast.LENGTH_LONG).show();
