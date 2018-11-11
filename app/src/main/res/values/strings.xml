@@ -17,4 +17,6 @@
     <string name="connect_new_browser"><u>Connect new browser</u></string>
     <string name="send_link_to_browser">Send link to browser</string>
     <string name="send_test_link">Send a test link</string>
+    <string name="step_one"><b>Step 1</b>: Go to chrome store and install <a href="https://chrome.google.com/webstore/detail/linora-share-links-betwee/lgjialkebobgcbdbkafjmcgfeelclcpb?hl=en-GB&amp;gl=IN">Linora extension</a> in your browser.</string>
+    <string name="step_two"><b>Step 2</b>: Click on the installed extension to open a QR code and scan the code with this app to connect to your browser.</string>
 </resources>

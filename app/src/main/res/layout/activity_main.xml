@@ -50,6 +50,42 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="190dp"
+                android:src="@drawable/tutorial_image_min"
+                android:scaleType="centerCrop"
+                />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:alpha=".12"
+                android:background="@color/black" />
+
+            <TextView
+                android:id="@+id/step_two_tv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_black"
+                android:textSize="14sp"
+                android:fontFamily="@font/roboto"
+                android:text="@string/step_one"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
+                />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_black"
+                android:textSize="14sp"
+                android:fontFamily="@font/roboto"
+                android:text="@string/step_two"
+                android:layout_margin="8dp"
+                />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -65,8 +101,8 @@
                 android:padding="16dp">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_marginEnd="8dp"
                     app:srcCompat="@drawable/qrcode_scan" />
 
@@ -74,10 +110,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/roboto_medium"
-                    android:text="Scan QR Code"
+                    android:text="Scan QR code"
                     android:textColor="@color/blue"
-
-                    android:textSize="16sp" />
+                    android:textSize="15sp" />
 
             </LinearLayout>
 
@@ -135,11 +170,11 @@
                 <ImageView
                     android:id="@+id/preview_image"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="100dp"
                     android:layout_marginEnd="8dp"
                     android:layout_weight=".3"
                     android:scaleType="centerCrop"
-                    android:src="@mipmap/ic_launcher" />
+                    android:src="@drawable/logo_small" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -185,6 +220,7 @@
             android:id="@+id/send_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:background="@drawable/border_stroke_blue"
             android:drawablePadding="8dp"
             android:drawableStart="@drawable/send"

@@ -18,29 +18,17 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".SendActivity"
-            android:label="Send to computer"
-            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
         <activity
             android:name=".BarCodeActivity"
             android:label="Scanner"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".RecieveActivity"
-            android:label="Receive"
             android:screenOrientation="portrait" />
 
         <service android:name=".FCM.MyFirebaseInstanceIDService">

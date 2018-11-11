@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
@@ -70,6 +72,9 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.preview_image)
     ImageView preview_image;
 
+    @BindView(R.id.step_two_tv)
+    TextView step_two_tv;
+
     private LinkPreviewCallback linkPreviewCallback;
     private String copiedText = "";
 
@@ -84,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        step_two_tv.setMovementMethod(LinkMovementMethod.getInstance());
        /* send_button = (Button) findViewById(R.id.send_button);
         receive_button = (Button) findViewById(R.id.receive_button);
         send_button.setOnClickListener(new View.OnClickListener() {
@@ -99,6 +104,18 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, RecieveActivity.class));
             }
         });*/
+
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if ("text/plain".equals(type)) {
+                String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("copied_text", sharedText);
+                clipboard.setPrimaryClip(clip);
+            }
+        }
 
         linkPreviewCallback = new LinkPreviewCallback() {
             @Override
@@ -171,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+
 
     }
 
