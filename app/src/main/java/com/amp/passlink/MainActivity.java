@@ -298,24 +298,34 @@ public class MainActivity extends AppCompatActivity {
     private void checkClipboard() {
         ClipboardManager myClipboard;
         myClipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        ClipData clipData = myClipboard.getPrimaryClip();
-        if (clipData != null) {
-            ClipData.Item item = clipData.getItemAt(0);
-            String text = item.getText().toString();
-            if (Patterns.WEB_URL.matcher(text).matches()) {
-                copiedText = text;
-                send_button.setText(R.string.send_link_to_browser);
-                TextCrawler textCrawler = new TextCrawler();
-                textCrawler.makePreview(linkPreviewCallback, text);
+        if (myClipboard != null && myClipboard.hasPrimaryClip()) {
+            ClipData clipData = myClipboard.getPrimaryClip();
+            if (clipData.getItemCount() > 0) {
+                ClipData.Item item = clipData.getItemAt(0);
+                String text = item.coerceToText(this).toString();
+                if (Patterns.WEB_URL.matcher(text).matches()) {
+                    copiedText = text;
+                    send_button.setText(R.string.send_link_to_browser);
+                    TextCrawler textCrawler = new TextCrawler();
+                    textCrawler.makePreview(linkPreviewCallback, text);
+                } else {
+                    checkForFirstSendOrNoLinkError();
+                }
             } else {
-                boolean first_send = (boolean) SharedPreferencesUtils.getParam(this, SharedPreferencesUtils.SHARED_PREF_FIRSTSEND, false);
-                if (!first_send) {
-                    send_button.setText(R.string.send_test_link);
-                    copiedText = "first_send";
-                } else
-                    Toast.makeText(this, "Couldn't detect any copied link.", Toast.LENGTH_LONG).show();
+                checkForFirstSendOrNoLinkError();
             }
+        } else {
+            checkForFirstSendOrNoLinkError();
         }
+    }
+
+    private void checkForFirstSendOrNoLinkError() {
+        boolean first_send = (boolean) SharedPreferencesUtils.getParam(this, SharedPreferencesUtils.SHARED_PREF_FIRSTSEND, false);
+        if (!first_send) {
+            send_button.setText(R.string.send_test_link);
+            copiedText = "first_send";
+        } else
+            Toast.makeText(this, "Couldn't detect any copied link.", Toast.LENGTH_LONG).show();
     }
 
 }
